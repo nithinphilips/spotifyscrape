@@ -4,20 +4,18 @@
 # spotify-export (https://github.com/jlund/spotify-export)
 
 import csv
-import re
-import sys
 import logging
+import os
+import re
 import spotipy
+import sys
 import spotipy.util as util
-from argh import *
 
+from argh import *
 from .config import read_config
+from .spotipyutil import prompt_for_user_token
 
 SPOTIFY_API_SCOPE = 'user-library-read'
-TOKEN_CACHE_PATH = os.path.expanduser("~/.spotify-oauth")
-
-if not os.path.exists(TOKEN_CACHE_PATH):
-    os.makedirs(TOKEN_CACHE_PATH)
 
 @arg('tracklist', help="A text file containing the Spotify track URIs.")
 @named('export-tracks')
@@ -63,15 +61,17 @@ def check_required_arg(argument, name):
 @arg('--client-secret', default=read_config().get("Spotify", "client-secret"))
 @arg('--redirect-uri', default=read_config().get("Spotify", "redirect-uri"))
 def checktoken(username=None, client_id=None, client_secret=None, redirect_uri=None):
+    """Retrieve or refresh Spotify authorization token.
+    """
 
     check_required_arg(username, "Username")
     check_required_arg(client_id, "Client ID")
     check_required_arg(client_secret, "Client Secret")
     check_required_arg(redirect_uri, "Redirect URL")
 
-    token = util.prompt_for_user_token(username, scope=SPOTIFY_API_SCOPE,
+    token = prompt_for_user_token(username, scope=SPOTIFY_API_SCOPE,
             client_id=client_id, client_secret=client_secret,
-            redirect_uri=redirect_uri, cache_path=TOKEN_CACHE_PATH)
+            redirect_uri=redirect_uri)
 
     if token:
         return "Token OK."
@@ -112,9 +112,9 @@ def exportplaylist(uri, username=None, client_id=None, client_secret=None, redir
 
     writer = csv.writer(sys.stdout, quoting=csv.QUOTE_ALL)
 
-    token = util.prompt_for_user_token(username, scope=SPOTIFY_API_SCOPE,
+    token = prompt_for_user_token(username, scope=SPOTIFY_API_SCOPE,
             client_id=client_id, client_secret=client_secret,
-            redirect_uri=redirect_uri, cache_path=TOKEN_CACHE_PATH)
+            redirect_uri=redirect_uri)
 
     sp = spotipy.Spotify(auth=token)
     results = sp.user_playlist(playlist_username, playlistid, fields="name,tracks,next")
