@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# PYTHON_ARGCOMPLETE_OK
 
 # shows a user's playlists (need to be authenticated via oauth)
 

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# PYTHON_ARGCOMPLETE_OK
 import ConfigParser, os, logging
 
 APP_CONFIG_FILE = os.path.expanduser("~/.spotifyscrape")

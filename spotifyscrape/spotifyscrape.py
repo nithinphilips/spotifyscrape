@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
 
-"""bootstrap.bootstrap: provides entry point main()."""
+"""spotifyscrape.spotifyscrape: provides entry point main()."""
 
 
 __version__ = "0.2.0"

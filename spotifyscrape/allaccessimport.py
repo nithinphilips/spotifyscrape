@@ -1,4 +1,5 @@
-#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# PYTHON_ARGCOMPLETE_OK
 import csv
 import os.path
 import logging

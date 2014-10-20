@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# PYTHON_ARGCOMPLETE_OK
 
 # NOTE: Idea for this script came from:
 # spotify-export (https://github.com/jlund/spotify-export)
