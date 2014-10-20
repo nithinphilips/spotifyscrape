@@ -1,108 +1,133 @@
 #!/usr/bin/python
-from gmusicapi import Mobileclient
-from pprint import pprint
 import re, sys
 import argparse
 import csv
 import fileinput
 import os.path
 import codecs
+import json
+import logging
 
-parser = argparse.ArgumentParser(description='Exports a Spotify playlist to stdout or csv.')
-parser.add_argument('--username', default='')
-parser.add_argument('--password', default='')
-parser.add_argument('--dry-run', default=False, action='store_true')
-parser.add_argument('playlist')
+from argh import *
+from gmusicapi import Mobileclient
+from pprint import pprint
 
-
-arguments = parser.parse_args()
-
-api = Mobileclient(False, False)
-logged_in = api.login(arguments.username, arguments.password)
-
-if not logged_in:
-    sys.stderr.write('Error. Unable to login to Google Music.\n')
-
-if arguments.playlist.lower().endswith('.csv'):
-    arguments.playlist = arguments.playlist[:-4]
-
-# 1. See if the playlist already exists.
-playlist = [x for x in api.get_all_user_playlist_contents() if x['name'] == arguments.playlist]
-currenttracks = list()
-
-if len(playlist) == 1:
-    tracks = playlist[0]['tracks']
-    currenttracks = [x['track']['storeId'] for x in tracks]
-
-    playlist = playlist[0]['id']
-    sys.stderr.write('Playlist found. It will be updated.\n')
-else:
-    sys.stderr.write('Playlist not found. Creating new.\n')
-    playlist = api.create_playlist(arguments.playlist)
+debug = True
 
 
+@arg('--username', default='')
+@arg('--password', default='')
+@arg('--dry-run', default=False, action='store_true')
+@arg('playlistfile')
+@named('import')
+def allaccessimport(playlistfile, username=None, password=None, dry_run=False):
+    """
+    Exports a Spotify playlist to stdout or csv.
+    """
 
-
-sys.stderr.write('Will update playlist {0} ({1})\n'.format(arguments.playlist, playlist))
-
-failed_tracks = list()
-songs_added = 0
-total = 0
-
-playlist_file  = "{0}.csv".format(arguments.playlist)
-
-if os.path.isfile(playlist_file):
-    stream = open(playlist_file, "rb")
-    sys.stderr.write('A file matching the playlist name was found. It will used instead of STDIN.\n')
-else:
-    stream = sys.stdin
-
-for kw in stream:
-    kw = re.sub('\r\n', '', kw)
-
-    x = list(csv.reader([kw], quoting=csv.QUOTE_ALL))[0]
-
-    if x[0] == 'Track' and x[1] == 'Artist':
-        sys.stderr.write('Skipping header.\n')
-        continue
-
-    search_term = "{0} {1}".format(x[0], x[1])
-
-    sys.stderr.write("Searching {0}...".format(search_term))
-
-    total = total + 1
-    try:
-        results = api.search_all_access(search_term)
-    except:
-        sys.stderr.write("No results\n")
-        failed_tracks.append(x)
-        continue
-
-    if len(results['song_hits']) > 0:
-        if results['song_hits'][0]['score'] > 50:
-            newtrackid = results['song_hits'][0]['track']['nid']
-
-            if newtrackid in currenttracks:
-                sys.stderr.write("Dupe. Skip.\n")
-            else:
-                if not arguments.dry_run:
-                    api.add_songs_to_playlist(playlist, newtrackid)
-                else:
-                    sys.stderr.write("NOOP")
-                #sys.stderr.write(newtrackid)
-                sys.stderr.write("OK.\n")
-                songs_added = songs_added + 1
-        else:
-            sys.stderr.write("Got track {0} with low score {1}.\n".format(results['song_hits'][0]['track']['title'], results['song_hits'][0]['score']))
+    # Try to get user name from config
+    config_file = os.path.expanduser("~/.spotifyscrape")
+    if username and password:
+        logging.debug("Not lookin for config file since both usr name and password are given as commandline options")
     else:
-        sys.stderr.write("Nothing good found.\n")
-        failed_tracks.append(x)
+        if os.path.exists(config_file):
+            with open(config_file, 'r') as config_f:
+                json_data = config_f.read()
+                try:
+                    data = json.loads(json_data)
+                except ValueError as error:
+                    raise CommandError("The configuration file at ~/.spotifyscrape could not be read and you did not specfiy the username and password in the arguments.")
+                username = data['username']
+                password = data['password']
+        else:
+            logging.debug("Config file not found")
 
-print "{0} songs added out of {1}. {2} Failed.".format(songs_added, total, total-songs_added)
+    if not os.path.exists(playlistfile):
+        raise CommandError('The given playlist file "{}" does not exist'.format(playlistfile))
 
-print "Failed tracks:"
-for line in failed_tracks:
-    print "  ", line
+    playlistname = playlistfile
+    playlistname = os.path.basename(playlistname)
+    playlistname = os.path.splitext(playlistname)[0]
 
-#  div = document.getElementById('overlay');
-#  div.parentElement.removeChild(div);
+    logging.debug("Playlist name will be: {}".format(playlistname))
+
+    api = Mobileclient(False, False)
+    logged_in = api.login(username, password)
+
+    if not logged_in:
+        raise CommandError('Error. Unable to login to Google Music.')
+
+
+    # 1. See if the playlist already exists.
+    playlist = [x for x in api.get_all_user_playlist_contents() if x['name'] == playlistname]
+    currenttracks = list()
+
+    if len(playlist) == 1:
+        tracks = playlist[0]['tracks']
+        currenttracks = [x['track']['storeId'] for x in tracks]
+
+        playlist = playlist[0]['id']
+        yield 'Playlist found. It will be updated.'
+    else:
+        yield 'Playlist not found. Creating new.'
+        playlist = api.create_playlist(playlistname)
+
+
+    yield 'Will update playlist {0} ({1})\n'.format(playlistname, playlist)
+
+    failed_tracks = list()
+    songs_added = 0
+    total = 0
+
+    if os.path.isfile(playlistfile):
+        stream = open(playlistfile, "rb")
+        yield 'A file matching the playlist name was found. It will used instead of STDIN'
+    else:
+        stream = sys.stdin
+
+    for kw in stream:
+        kw = re.sub('\r\n', '', kw)
+
+        x = list(csv.reader([kw], quoting=csv.QUOTE_ALL))[0]
+
+        if x[0] == 'Track' and x[1] == 'Artist':
+            yield 'Skipping header.'
+            continue
+
+        search_term = "{0} {1}".format(x[0], x[1])
+
+        sys.stderr.write("Searching {0}...".format(search_term))
+
+        total = total + 1
+        try:
+            results = api.search_all_access(search_term)
+        except:
+            sys.stderr.write("No results\n")
+            failed_tracks.append(x)
+            continue
+
+        if len(results['song_hits']) > 0:
+            if results['song_hits'][0]['score'] > 50:
+                newtrackid = results['song_hits'][0]['track']['nid']
+
+                if newtrackid in currenttracks:
+                    sys.stderr.write("Dupe. Skip.\n")
+                else:
+                    if not dry_run:
+                        api.add_songs_to_playlist(playlist, newtrackid)
+                    else:
+                        sys.stderr.write("NOOP")
+                    #sys.stderr.write(newtrackid)
+                    sys.stderr.write("OK.\n")
+                    songs_added = songs_added + 1
+            else:
+                sys.stderr.write("Got track {0} with low score {1}.\n".format(results['song_hits'][0]['track']['title'], results['song_hits'][0]['score']))
+        else:
+            sys.stderr.write("Nothing good found.\n")
+            failed_tracks.append(x)
+
+    yield "{0} songs added out of {1}. {2} Failed.".format(songs_added, total, total-songs_added)
+
+    yield "Failed tracks:"
+    for line in failed_tracks:
+        yield "  " + line
