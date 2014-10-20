@@ -1,8 +1,6 @@
 #!/usr/bin/python
-import re, sys
 import csv
 import os.path
-import json
 import logging
 
 from .config import read_config
@@ -47,11 +45,13 @@ def allaccessimport(playlist=None, username=None, password=None, dry_run=False, 
 
     stream = open(playlist, "rb") if playlist else sys.stdin
 
-    for kw in stream:
-        kw = kw.strip()
+    for input_line in stream:
+        input_line = input_line.strip()
 
-        if kw.startswith("#"):
-            data = kw[1:]
+        # Lazily search the beginning of the file for a Playlist name
+        if input_line.startswith("#"):
+            data = input_line[1:]
+            # TODO: What happens if the playlist name contains a colon?
             parts = [x.strip() for x in data.split(":")]
             if(len(parts) == 2):
                 if(parts[0] == "Playlist"):
@@ -68,7 +68,7 @@ def allaccessimport(playlist=None, username=None, password=None, dry_run=False, 
                     playlist_ref = api.create_playlist(playlist_name)
                 yield 'Going to update playlist {0} ({1})\n'.format(playlist_name, playlist_ref)
 
-        x = list(csv.reader([kw], quoting=csv.QUOTE_ALL))[0]
+        x = list(csv.reader([input_line], quoting=csv.QUOTE_ALL))[0]
 
         if x[0] == 'Track' and x[1] == 'Artist':
             yield 'Skipping header.'
@@ -127,21 +127,3 @@ def get_playlist(api, playlistname):
         playlist = None
 
     return playlist, currenttracks
-
-def read_config():
-    username = None
-    password = None
-    if os.path.exists(APP_CONFIG_FILE):
-        with open(APP_CONFIG_FILE, 'r') as config_f:
-            json_data = config_f.read()
-            try:
-                data = json.loads(json_data)
-            except ValueError as error:
-                raise CommandError("The configuration file at ~/.spotifyscrape could not be read. It maybe empty or invalid")
-
-            username = data['username']
-            password = data['password']
-    else:
-        logging.debug("Config file '{}' not found".format(APP_CONFIG_FILE))
-
-    return username, password
