@@ -14,6 +14,10 @@ from argh import *
 from .config import read_config
 
 SPOTIFY_API_SCOPE = 'user-library-read'
+TOKEN_CACHE_PATH = os.path.expanduser("~/.spotify-oauth")
+
+if not os.path.exists(TOKEN_CACHE_PATH):
+    os.makedirs(TOKEN_CACHE_PATH)
 
 @arg('tracklist', help="A text file containing the Spotify track URIs.")
 @named('export-tracks')
@@ -65,7 +69,9 @@ def checktoken(username=None, client_id=None, client_secret=None, redirect_uri=N
     check_required_arg(client_secret, "Client Secret")
     check_required_arg(redirect_uri, "Redirect URL")
 
-    token = util.prompt_for_user_token(username, scope=SPOTIFY_API_SCOPE, client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
+    token = util.prompt_for_user_token(username, scope=SPOTIFY_API_SCOPE,
+            client_id=client_id, client_secret=client_secret,
+            redirect_uri=redirect_uri, cache_path=TOKEN_CACHE_PATH)
 
     if token:
         return "Token OK."
@@ -105,7 +111,11 @@ def exportplaylist(uri, username=None, client_id=None, client_secret=None, redir
     sys.stderr.write("Searching for {}'s playlist {}\n".format(playlist_username, playlistid))
 
     writer = csv.writer(sys.stdout, quoting=csv.QUOTE_ALL)
-    token = util.prompt_for_user_token(username, SPOTIFY_API_SCOPE)
+
+    token = util.prompt_for_user_token(username, scope=SPOTIFY_API_SCOPE,
+            client_id=client_id, client_secret=client_secret,
+            redirect_uri=redirect_uri, cache_path=TOKEN_CACHE_PATH)
+
     sp = spotipy.Spotify(auth=token)
     results = sp.user_playlist(playlist_username, playlistid, fields="name,tracks,next")
     sys.stdout.write("# Playlist: {}\n".format( results['name']))
