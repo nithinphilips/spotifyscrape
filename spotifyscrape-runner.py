@@ -9,9 +9,5 @@
 from spotifyscrape.spotifyscrape import main
 import logging
 
-debug = False
-
 if __name__ == '__main__':
-    if debug:
-        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s: %(message)s')
     main()
