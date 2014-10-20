@@ -22,6 +22,13 @@ with open("README.rst", "rb") as f:
 setup(
     name = "spotifyscrape",
     packages = ["spotifyscrape"],
+    package_data = {"spotifyscrape" : ["*.conf"]},
+    install_requires=[
+        "argcomplete",
+        "argh",
+        "gmusicapi",
+        "spotipy",
+    ],
     entry_points = {
         "console_scripts": [
             'spotifyscrape = spotifyscrape.spotifyscrape:main',

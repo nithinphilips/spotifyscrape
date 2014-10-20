@@ -11,6 +11,10 @@ import spotipy
 import spotipy.util as util
 from argh import *
 
+from .config import read_config
+
+SPOTIFY_API_SCOPE = 'user-library-read'
+
 @arg('tracklist', help="A text file containing the Spotify track URIs.")
 @named('export-tracks')
 def exporttracks(tracklist):
@@ -58,35 +62,63 @@ def csv_write_track(writer, track):
 
     writer.writerow([title, artist, album])
 
-@arg('username', help='Your Spotify user name')
+@arg('--username', help='Your Spotify user name', default=read_config().get("Spotify", "username"))
+@arg('--client-id', default=read_config().get("Spotify", "client-id"))
+@arg('--client-secret', default=read_config().get("Spotify", "client-secret"))
+@arg('--redirect-uri', default=read_config().get("Spotify", "redirect-uri"))
+def checktoken(username=None, client_id=None, client_secret=None, redirect_uri=None):
+
+    if not username:
+        raise CommandError("Username must be provided as either command-line argument or in the application configuration file.")
+
+    if not client_id:
+        raise CommandError("Client ID must be provided as either command-line argument or in the application configuration file.")
+
+    if not client_secret:
+        raise CommandError("Client Secret must be provided as either command-line argument or in the application configuration file.")
+
+    if not redirect_uri:
+        raise CommandError("Redirect URL must be provided as either command-line argument or in the application configuration file.")
+
+    token = util.prompt_for_user_token(username, scope=SPOTIFY_API_SCOPE, client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
+
+
+    if token:
+        return "Token OK."
+    else:
+        return "Unable to get token."
+
+@arg('--username', help='Your Spotify user name', default=read_config().get("Spotify", "username"))
 @arg('uri', help='The Public HTTP URL to a playlist')
 @named('export-playlist')
-def exportplaylist(uri, username):
+def exportplaylist(uri, username=None):
     """
     Given a Spotify playlist's public HTTP URL, prints the track Title, Artist and Album.
 
     The URL must be in the format:
      http://open.spotify.com/user/<user-id>/playlist/<playlist-id>
 
-    The first line of the output will tbe playlist's name as a comment.
+    You need to be authorized before you can use this command. See the README for details.
     """
 
-    scope = 'user-library-read'
+    if not username:
+        raise CommandError("Username must be provided as either command-line argument or in the application configuration file.")
+
     pattern = "http://open.spotify.com/user/([^/]+)/playlist/(.+)"
 
     match = re.match(pattern, uri)
     if match:
-        username = match.group(1)
+        playlist_username = match.group(1)
         playlistid = match.group(2)
     else:
         raise CommandError("Cannot read the URI. See the help for expected format.")
 
-    sys.stderr.write("Searching for {}'s playlist {}\n".format(username, playlistid))
+    sys.stderr.write("Searching for {}'s playlist {}\n".format(playlist_username, playlistid))
 
     writer = csv.writer(sys.stdout, quoting=csv.QUOTE_ALL)
-    token = util.prompt_for_user_token(username, scope)
+    token = util.prompt_for_user_token(username, SPOTIFY_API_SCOPE)
     sp = spotipy.Spotify(auth=token)
-    results = sp.user_playlist(username, playlistid, fields="name,tracks,next")
+    results = sp.user_playlist(playlist_username, playlistid, fields="name,tracks,next")
     sys.stdout.write("# Playlist: {}\n".format( results['name']))
 
     csv_write_header(writer)
