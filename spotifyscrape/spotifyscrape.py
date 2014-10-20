@@ -12,7 +12,7 @@ from argh import *
 import argcomplete
 import argparse
 import logging
-from .spotifyexport import export
+from .spotifyexport import exporttracks, exportplaylist
 from .allaccessimport import allaccessimport
 
 
@@ -25,7 +25,7 @@ common_parser.add_argument('--debug',
 
 def main():
     parser = ArghParser(parents=[common_parser])
-    parser.add_commands([export, allaccessimport])
+    parser.add_commands([exporttracks, allaccessimport, exportplaylist])
     completion.autocomplete(parser)
 
     args = parser.parse_args()
