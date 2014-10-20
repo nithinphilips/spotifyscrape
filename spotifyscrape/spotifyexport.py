@@ -47,20 +47,12 @@ def exporttracks(tracklist):
 
         sys.stderr.write("{0} tracks processed. {1} found. {2} failed.\n".format(len(lines), len(tracks) - failed, failed))
 
-def csv_write_header(writer):
-    writer.writerow(["Track", "Artist", "Album"])
 
-def write_tracks(results, writer):
-    for tracks in results['items']:
-        track = tracks['track']
-        csv_write_track(writer, track)
+def check_required_arg(argument, name):
+    if not argument:
+        raise CommandError(
+            "{} must be provided as either command-line argument or in the application configuration file.".format(name))
 
-def csv_write_track(writer, track):
-    title = track['name'].encode('utf8')
-    album = track['album']['name'].encode('utf8')
-    artist = track['artists'][0]['name'].encode('utf8')
-
-    writer.writerow([title, artist, album])
 
 @arg('--username', help='Your Spotify user name', default=read_config().get("Spotify", "username"))
 @arg('--client-id', default=read_config().get("Spotify", "client-id"))
@@ -68,20 +60,12 @@ def csv_write_track(writer, track):
 @arg('--redirect-uri', default=read_config().get("Spotify", "redirect-uri"))
 def checktoken(username=None, client_id=None, client_secret=None, redirect_uri=None):
 
-    if not username:
-        raise CommandError("Username must be provided as either command-line argument or in the application configuration file.")
-
-    if not client_id:
-        raise CommandError("Client ID must be provided as either command-line argument or in the application configuration file.")
-
-    if not client_secret:
-        raise CommandError("Client Secret must be provided as either command-line argument or in the application configuration file.")
-
-    if not redirect_uri:
-        raise CommandError("Redirect URL must be provided as either command-line argument or in the application configuration file.")
+    check_required_arg(username, "Username")
+    check_required_arg(client_id, "Client ID")
+    check_required_arg(client_secret, "Client Secret")
+    check_required_arg(redirect_uri, "Redirect URL")
 
     token = util.prompt_for_user_token(username, scope=SPOTIFY_API_SCOPE, client_id=client_id, client_secret=client_secret, redirect_uri=redirect_uri)
-
 
     if token:
         return "Token OK."
@@ -89,9 +73,12 @@ def checktoken(username=None, client_id=None, client_secret=None, redirect_uri=N
         return "Unable to get token."
 
 @arg('--username', help='Your Spotify user name', default=read_config().get("Spotify", "username"))
+@arg('--client-id', default=read_config().get("Spotify", "client-id"))
+@arg('--client-secret', default=read_config().get("Spotify", "client-secret"))
+@arg('--redirect-uri', default=read_config().get("Spotify", "redirect-uri"))
 @arg('uri', help='The Public HTTP URL to a playlist')
 @named('export-playlist')
-def exportplaylist(uri, username=None):
+def exportplaylist(uri, username=None, client_id=None, client_secret=None, redirect_uri=None):
     """
     Given a Spotify playlist's public HTTP URL, prints the track Title, Artist and Album.
 
@@ -101,8 +88,10 @@ def exportplaylist(uri, username=None):
     You need to be authorized before you can use this command. See the README for details.
     """
 
-    if not username:
-        raise CommandError("Username must be provided as either command-line argument or in the application configuration file.")
+    check_required_arg(username, "Username")
+    check_required_arg(client_id, "Client ID")
+    check_required_arg(client_secret, "Client Secret")
+    check_required_arg(redirect_uri, "Redirect URL")
 
     pattern = "http://open.spotify.com/user/([^/]+)/playlist/(.+)"
 
@@ -111,7 +100,7 @@ def exportplaylist(uri, username=None):
         playlist_username = match.group(1)
         playlistid = match.group(2)
     else:
-        raise CommandError("Cannot read the URI. See the help for expected format.")
+        raise CommandError("Cannot read the playlist URI. See the help for expected format.")
 
     sys.stderr.write("Searching for {}'s playlist {}\n".format(playlist_username, playlistid))
 
@@ -124,7 +113,22 @@ def exportplaylist(uri, username=None):
     csv_write_header(writer)
 
     tracks = results['tracks']
-    write_tracks(tracks, writer)
+    csv_write_tracks(tracks, writer)
     while tracks['next']:
         tracks = sp.next(tracks)
-        write_tracks(tracks, writer)
+        csv_write_tracks(tracks, writer)
+
+def csv_write_header(writer):
+    writer.writerow(["Track", "Artist", "Album"])
+
+def csv_write_tracks(results, writer):
+    for tracks in results['items']:
+        track = tracks['track']
+        csv_write_track(writer, track)
+
+def csv_write_track(writer, track):
+    title = track['name'].encode('utf8')
+    album = track['album']['name'].encode('utf8')
+    artist = track['artists'][0]['name'].encode('utf8')
+
+    writer.writerow([title, artist, album])
