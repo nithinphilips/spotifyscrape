@@ -33,7 +33,7 @@ Import Spotify Playlist into Google Play All Access
 This method requires authorization.
 
 1. First, register for a Spotify developer key at
-   https://developer.spotify.com/my-applications/#!/applications
+   https://developer.spotify.com/my-applications
 
    You will need a free Spotify account.
 
@@ -51,7 +51,8 @@ This method requires authorization.
     redirect-uri = http://localhost
 
    Replace the place holders with actual values. If you use two-factor
-   authentication with your Google account, generate a new App password.
+   authentication with your Google account, generate a new `App password
+   <https://support.google.com/accounts/answer/185833?hl=en>`_.
 
 5. Check the Token::
 
@@ -65,12 +66,9 @@ This method requires authorization.
         a url.  Paste that url you were directed to to
         complete the authorization.
 
-
         Please navigate here: https://accounts.spotify.com/authorize?scope=user-library-read&redirect_uri=...
 
-
         Enter the URL you were redirected to:
-
 
 6. Copy and paste the URL
    ``https://accounts.spotify.com/authorize?scope=user-library-read&redirect_uri=...``
