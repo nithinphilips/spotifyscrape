@@ -1,16 +1,29 @@
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
-import ConfigParser, os, logging
+
+"""Methods to read the app configuration"""
+
+import ConfigParser, os
 
 APP_CONFIG_FILE = os.path.expanduser("~/.spotifyscrape")
 
-config = None
+CONFIG = None
 
 def read_config():
-    global config
-    if not config:
-        config = ConfigParser.SafeConfigParser()
-        config.readfp(open(os.path.join(os.path.dirname(__file__), 'defaults.conf')))
-        config.read(['/etc/spotifyscrape.conf', APP_CONFIG_FILE])
+    """
+    Read the configuration file and load the configuration
+    or return an already loaded configuration object.
+    """
+    global CONFIG
+    if not CONFIG:
+        CONFIG = ConfigParser.SafeConfigParser()
+        CONFIG.readfp(
+            open(os.path.join(
+                os.path.dirname(__file__),
+                'defaults.conf'
+            ))
+        )
+        CONFIG.read(['/etc/spotifyscrape.conf', APP_CONFIG_FILE])
 
-    return config
+    return CONFIG
+
