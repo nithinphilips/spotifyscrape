@@ -7,6 +7,7 @@ import csv
 import re
 import spotipy
 import sys
+import io
 
 from argh import arg, named, CommandError
 
@@ -50,7 +51,7 @@ def exporttracks(tracklist):
     """
 
     spotify = spotipy.Spotify()
-    writer = csv.writer(sys.stdout, quoting=csv.QUOTE_ALL)
+    writer = csv.writer(io.StringIO(), quoting=csv.QUOTE_ALL)
     csv_write_header(writer)
     failed = 0
     tracks = None
