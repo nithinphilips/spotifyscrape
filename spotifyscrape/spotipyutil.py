@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 # PYTHON_ARGCOMPLETE_OK
 
-# shows a user's playlists (need to be authenticated via oauth)
+"""
+Interactively prompts for Spotify OAuth tokens.
+"""
 
 import os
 import sys
@@ -11,7 +13,8 @@ import spotipy
 
 TOKEN_CACHE_PATH = os.path.expanduser("~/.spotify-oauth")
 
-def prompt_for_user_token(username, scope=None, client_id=None, client_secret=None, redirect_uri=None):
+def prompt_for_user_token(username, scope=None, client_id=None,
+                          client_secret=None, redirect_uri=None):
     ''' prompts the user to login if necessary and returns
         the user token suitable for use with the spotipy.Spotify
         constructor
