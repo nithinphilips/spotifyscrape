@@ -117,3 +117,4 @@ Installation/Setting Up VirtualEnv
 3. Install SpotifyScrape and dependencies::
 
     python setup.py install
+
