@@ -76,7 +76,7 @@ This method requires authorization.
 7. You will be redirected to a page that looks like an error page. The
    information required to complete the authorization is in the URL.
 8. Copy the URL of the page and paste it back in the terminal and press Enter
-9. If everything went correctlu, you will see *Token OK*
+9. If everything went correctly, you will see *Token OK*
 10. Grab a playlist::
 
         spotifyscrape export-playlist http://open.spotify.com/user/115683679/playlist/55RoVrmRtlgMF0kZnco4vp
@@ -100,7 +100,7 @@ This method requires authorization.
 12. The script will create or update the playlist in All Access.
 
 The script adds tracks to the All Access playlist by searching by the track
-title and artist name. It's not fool proof and not all track will match.
+title and artist name. It's not fool proof and not all tracks will match.
 
 Installation/Setting Up VirtualEnv
 ----------------------------------
