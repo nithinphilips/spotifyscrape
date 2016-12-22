@@ -18,9 +18,10 @@ export-tracks
     like ``spotify:track:3HaYLn3KGQ6PF7O3TbhNat``)
 
 export-playlist
-    Given a Spotify playlist's public HTTP URL, prints the track Title, Artist
-    and Album. You need to be authorized before you can use this command. You
-    can export your private playlists and any other users' public playlists.
+    Given a Spotify playlist's public HTTP URL or ``spotify:`` URI, prints the
+    track Title, Artist and Album. You need to be authorized before you can use
+    this command. You can export your private playlists and any other users'
+    public playlists.
 
 checktoken
     Retrieves or refreshes Spotify authorization token.
@@ -96,6 +97,10 @@ This method requires authorization.
 11. Next, upload to Google Play All Access::
 
         spotifyscrape export-playlist http://open.spotify.com/user/115683679/playlist/55RoVrmRtlgMF0kZnco4vp | spotifyscrape import
+
+    Using the ``spotify:`` URI::
+ 		
+		spotifyscrape export-playlist spotify:user:1150884627:playlist:3cyD3zInBW4j97ay6xB2WQ | spotifyscrape import
 
 12. The script will create or update the playlist in All Access.
 

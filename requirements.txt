@@ -1,4 +1,4 @@
 argcomplete==0.8.1
 argh==0.25.0
-gmusicapi==4.0.0
-spotipy==2.0.2
+gmusicapi>=10.0.1
+spotipy>=2.0.2

@@ -134,8 +134,12 @@ def exportplaylist(uri, username=None, client_id=None, client_secret=None,
     check_required_arg(redirect_uri, "Redirect URL")
 
     pattern = "http://open.spotify.com/user/([^/]+)/playlist/(.+)"
+    alt_pattern = "spotify:user:([^:]+):playlist:(.+)"
 
     match = re.match(pattern, uri)
+    if not match:
+        match = re.match(alt_pattern, uri)
+
     if match:
         playlist_username = match.group(1)
         playlistid = match.group(2)
@@ -143,6 +147,9 @@ def exportplaylist(uri, username=None, client_id=None, client_secret=None,
         raise CommandError(
             "Cannot read the playlist URI. See the help for expected format."
         )
+
+    # A normalized URL to put in GPM playlist description
+    open_spotify_uri = "http://open.spotify.com/user/{}/playlist/{}".format(playlist_username, playlistid)
 
     sys.stderr.write(
         "Searching for {}'s playlist {}\n".format(playlist_username, playlistid)
@@ -161,6 +168,7 @@ def exportplaylist(uri, username=None, client_id=None, client_secret=None,
         playlist_username, playlistid, fields="name,tracks,next"
     )
     sys.stdout.write("# Playlist: {}\n".format(results['name']))
+    sys.stdout.write("# Description: from {}\n".format(open_spotify_uri))
 
     csv_write_header(writer)
 

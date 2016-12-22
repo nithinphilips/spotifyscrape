@@ -45,13 +45,14 @@ def allaccessimport(playlist=None, username=None, password=None, dry_run=False):
         )
 
     playlist_name = playlist
+    playlist_description = ""
     if playlist:
         playlist_name = os.path.basename(playlist_name)
         playlist_name = os.path.splitext(playlist_name)[0]
     logging.debug("Playlist name will be: {}".format(playlist_name))
 
     api = Mobileclient(False, False)
-    logged_in = api.login(username, password)
+    logged_in = api.login(username, password, Mobileclient.FROM_MAC_ADDRESS)
     if not logged_in:
         raise CommandError('Error. Unable to login to Google Music All Access.')
 
@@ -70,11 +71,14 @@ def allaccessimport(playlist=None, username=None, password=None, dry_run=False):
         # Lazily search the beginning of the file for a Playlist name
         if input_line.startswith("#"):
             data = input_line[1:]
-            # TODO: What happens if the playlist name contains a colon?
-            parts = [x.strip() for x in data.split(":")]
+            parts = [x.strip() for x in data.split(":", 1)]
+
             if len(parts) == 2:
                 if parts[0] == "Playlist":
                     playlist_name = parts[1]
+                elif parts[0] == "Description":
+                    playlist_description = parts[1]
+
             continue
 
         if not playlist_ref:
@@ -87,7 +91,7 @@ def allaccessimport(playlist=None, username=None, password=None, dry_run=False):
                 playlist_ref, currenttracks = get_playlist(api, playlist_name)
                 if not playlist_ref and not dry_run:
                     sys.stderr.write('Playlist not found. Creating new.\n')
-                    playlist_ref = api.create_playlist(playlist_name)
+                    playlist_ref = api.create_playlist(playlist_name, description=playlist_description)
                 yield 'Going to update playlist {0} ({1})\n'.format(
                     playlist_name, playlist_ref
                 )
@@ -126,21 +130,18 @@ def search_track(api, search_term, currenttracks):
     """
 
     try:
-        results = api.search_all_access(search_term)
+        results = api.search(search_term)
     except Exception as error:
         logging.exception(error)
         return None, "Search Failed"
 
     if len(results['song_hits']) > 0:
-        if results['song_hits'][0]['score'] > 50:
-            newtrackid = results['song_hits'][0]['track']['nid']
+        newtrackid = results['song_hits'][0]['track']['nid']
 
-            if newtrackid in currenttracks:
-                return None, "Dupe"
-            else:
-                return newtrackid, "OK"
+        if newtrackid in currenttracks:
+            return None, "Dupe"
         else:
-            return None, "No Results within Threshold"
+            return newtrackid, "OK"
     else:
         return None, "No Results"
 
