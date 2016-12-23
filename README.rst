@@ -8,6 +8,8 @@ Getting Started
 ---------------
 Install Python 2.7. Download the source and install::
 
+    git clone https://github.com/nithinphilips/spotifyscrape.git
+    cd SpotifyScrape
     python setup.py install
 
 Usage
@@ -85,8 +87,8 @@ Usage: ``spotifyscrape import --playlist <tracks-file>`` or ``cat <tracks-file>
 
 Imports a playlist into *Google Play Music All Access*.
 
-This command expects a list of track in ``STDIN``. Alternately, you can pass a
-track list file name using the ``--playlist`` argument.
+This command expects a list of track in ``STDIN``. Alternatively, you can pass
+a track list file name using the ``--playlist`` argument.
 
 The track list input format is same as the output of the ``export-playlist``
 command.
@@ -95,8 +97,9 @@ If a line starts with ``# Playlist:``, then the rest of the line will be used
 as the playlist name. If the line starts with ``# Description:``  the remainder
 will be used as the playlist description.
 
-We match tracks in the input by searching by the *track* and *artist* name in the
-Google Play All Access library. A match is now always guaranteed.
+We match tracks in the input by searching by the *track* and *artist* name in
+the Google Play All Access library. A match is not always guaranteed. You might
+especially run into issues with remixes and covers.
 
 Example::
 
@@ -121,8 +124,8 @@ Example::
     ['Forever This', 'Fries', 'Norman Jay MBE presents GOOD TIMES 30th Anniversary Edition']
     ...
 
-Import Spotify Playlist into Google Play All Access
----------------------------------------------------
+One time Setup
+--------------
 1. First, register for a Spotify developer key at
    https://developer.spotify.com/my-applications
 
@@ -174,31 +177,17 @@ Import Spotify Playlist into Google Play All Access
 
    If everything went correctly, you will see *Token OK*
 
-4. Download the playlist and upload to Google Play All Access::
+Import a Playlist
+-----------------
+Download the playlist and upload to Google Play All Access::
 
-        spotifyscrape export-playlist http://open.spotify.com/user/115683679/playlist/55RoVrmRtlgMF0kZnco4vp | spotifyscrape import
+    spotifyscrape export-playlist http://open.spotify.com/user/115683679/playlist/55RoVrmRtlgMF0kZnco4vp | spotifyscrape import
 
-   or using the ``spotify:`` URI::
+or using the ``spotify:`` URI::
 
-        spotifyscrape export-playlist spotify:user:1150884627:playlist:3cyD3zInBW4j97ay6xB2WQ | spotifyscrape import
+    spotifyscrape export-playlist spotify:user:1150884627:playlist:3cyD3zInBW4j97ay6xB2WQ | spotifyscrape import
 
-    The playlist will be created in All Access.
-
-Installation/Setting Up VirtualEnv
-----------------------------------
-1. Clone the repository::
-
-    git clone https://github.com/nithinphilips/spotifyscrape.git
-    cd SpotifyScrape
-
-2. Create the VirtualEnv::
-
-    virtualenv venv
-    source venv/bin/activate
-
-3. Install SpotifyScrape and dependencies::
-
-    python setup.py install
+The playlist will be created in All Access.
 
 License
 -------
