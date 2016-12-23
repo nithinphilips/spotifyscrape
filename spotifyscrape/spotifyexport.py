@@ -51,7 +51,7 @@ def exporttracks(tracklist):
     """
 
     spotify = spotipy.Spotify()
-    writer = csv.writer(io.StringIO(), quoting=csv.QUOTE_ALL)
+    writer = csv.writer(sys.stdout, quoting=csv.QUOTE_ALL)
     csv_write_header(writer)
     failed = 0
     tracks = None
