@@ -107,7 +107,8 @@ def allaccessimport(playlist=None, username=None, password=None, dry_run=False):
         newtrackid, error_reason = search_track(api, search_term, currenttracks)
         if newtrackid:
             if not dry_run:
-                api.add_songs_to_playlist(playlist_ref, newtrackid)
+                #print("Add to {} song {}".format(playlist_ref, newtrackid))
+                api.add_songs_to_playlist(playlist_ref, [newtrackid])
             songs_added = songs_added + 1
         else:
             failed_tracks.append(trackinfo)
@@ -136,7 +137,7 @@ def search_track(api, search_term, currenttracks):
         return None, "Search Failed"
 
     if len(results['song_hits']) > 0:
-        newtrackid = results['song_hits'][0]['track']['nid']
+        newtrackid = results['song_hits'][0]['track']['storeId']
 
         if newtrackid in currenttracks:
             return None, "Dupe"
