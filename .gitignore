@@ -56,3 +56,6 @@ target/
 
 work/
 nithin.spotifyscrape
+
+.idea/
+.cache-*
