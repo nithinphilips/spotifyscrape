@@ -109,6 +109,7 @@ Example::
     "Track","Artist","Album"
     "Lighting The Spark","Dave Sparkz","Ivory Lounge"
     "Hello Sunshine","Damien Jurado","Hello Sunshine"
+    ...
 
     $ cat tracks.csv | spotifyscrape import
     Playlist not found. Creating new.
