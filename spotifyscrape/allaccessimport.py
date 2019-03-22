@@ -108,7 +108,7 @@ def allaccessimport(playlist=None, username=None, password=None, dry_run=False):
         if newtrackid:
             if not dry_run:
                 #print("Add to {} song {}".format(playlist_ref, newtrackid))
-                api.add_songs_to_playlist(playlist_ref, [newtrackid])
+                api.add_songs_to_playlist(playlist_ref, newtrackid)
             songs_added = songs_added + 1
         else:
             failed_tracks.append(trackinfo)
