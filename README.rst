@@ -6,24 +6,24 @@ either Spotify or Google. Use it at your own risk.
 
 Getting Started
 ---------------
-Install Python 2.7. Download the source and install::
+Install Python 3.6.9 or above. Download the source and install::
 
     git clone https://github.com/nithinphilips/spotifyscrape.git
-    cd SpotifyScrape
+    cd spotifyscrape
     python setup.py install
 
 Usage
 -----
 Spotify Scrape is run using one of these commands::
 
-    spotifyscrape <command>
+    spotifyscrape {gmusic, spotify} <command>
 
 Here are the supported commands:
 
 Export Tracks
 ~~~~~~~~~~~~~
 
-Usage: ``spotifyscrape export-tracks <tracklist>``
+Usage: ``spotifyscrape spotify export-tracks <tracklist>``
 
 Gets the track Title, Artist and Album from a list of Spotify track URIs.
 
@@ -39,7 +39,7 @@ Example::
     spotify:track:0zoHzM4bKGQ8Q6wze334Qs
     spotify:track:4p2olbKKjXCdJmR4Xa1mYv
 
-    $ spotifyscrape export-tracks tracks.txt
+    $ spotifyscrape spotify export-tracks tracks.txt
     "Track","Artist","Album"
     "The Bad In Each Other","Feist","Metals"
     "Graveyard","Feist","Metals"
@@ -48,7 +48,7 @@ Example::
 
 Export Playlist
 ~~~~~~~~~~~~~~~
-Usage: ``spotifyscrape export-playlist <URI>``
+Usage: ``spotifyscrape spotify export <URI>``
 
 Gets all the tracks in a Spotify playlist.
 
@@ -57,7 +57,7 @@ You can export your own private playlists and other users' public playlists.
 
 Example::
 
-    $ spotifyscrape export-playlist spotify:user:1150884627:playlist:3cyD3zInBW4j97ay6xB2WQ
+    $ spotifyscrape spotify export spotify:user:1150884627:playlist:3cyD3zInBW4j97ay6xB2WQ
     Searching for 1150884627's playlist 3cyD3zInBW4j97ay6xB2WQ
     # Playlist: Beach Bar Boutique-Vol8
     # Description: from http://open.spotify.com/user/1150884627/playlist/3cyD3zInBW4j97ay6xB2WQ
@@ -68,22 +68,22 @@ Example::
     "Taxi Bossa","FloFilz","Cenário"
     ...
 
-Check Token
-~~~~~~~~~~~
-Usage: ``spotifyscrape checktoken``
+Login
+~~~~~
+Usage: ``spotifyscrape login``
 
 Updates the Spotify API token. You must run this command at least once before
-using the ``export-playlist`` command.
+using the ``export`` command.
 
 Example::
 
-    $ spotifyscrape checktoken
+    $ spotifyscrape login
     Token OK.
 
 Import
 ~~~~~~
-Usage: ``spotifyscrape import --playlist <tracks-file>`` or ``cat <tracks-file>
-| spotifyscrape import``
+Usage: ``spotifyscrape gmusic import --playlist <tracks-file>`` or ``cat <tracks-file>
+| spotifyscrape gmusic import``
 
 Imports a playlist into *Google Play Music All Access*.
 
@@ -111,7 +111,7 @@ Example::
     "Hello Sunshine","Damien Jurado","Hello Sunshine"
     ...
 
-    $ cat tracks.csv | spotifyscrape import
+    $ cat tracks.csv | spotifyscrape gmusic import
     Playlist not found. Creating new.
     Going to update playlist Beach Bar Boutique-Vol8 (47ca4a0c-b717-43c1-bf51-c50bcf25b3d3)
 
@@ -140,21 +140,18 @@ One time Setup
    the following content::
 
     [All Access]
-    username = you@gmail.com
-    password = <your-password>
+    client-id = <your-client-id> # Client-id is a unique 16 digit hexadecimal string
     [Spotify]
     username = you@facebook.com
     client-id = <your-client-id>
     client-secret = <your-client-secret>
     redirect-uri = http://localhost
 
-   Replace the place holders with actual values. If you use two-factor
-   authentication with your Google account, generate a new `App password
-   <https://support.google.com/accounts/answer/185833?hl=en>`_.
+   Replace the place holders with actual values.
 
 3. Update the Spotify API token::
 
-    $ spotifyscrape checktoken
+    $ spotifyscrape spotify login
 
    You will see something like::
 
@@ -178,15 +175,19 @@ One time Setup
 
    If everything went correctly, you will see *Token OK*
 
+4. Update the Google Play All Access Token::
+
+        spotifyscrape gmusic login
+
 Import a Playlist
 -----------------
 Download the playlist and upload to Google Play All Access::
 
-    spotifyscrape export-playlist http://open.spotify.com/user/115683679/playlist/55RoVrmRtlgMF0kZnco4vp | spotifyscrape import
+    spotifyscrape spotify export http://open.spotify.com/user/115683679/playlist/55RoVrmRtlgMF0kZnco4vp | spotifyscrape gmusic import
 
 or using the ``spotify:`` URI::
 
-    spotifyscrape export-playlist spotify:user:1150884627:playlist:3cyD3zInBW4j97ay6xB2WQ | spotifyscrape import
+    spotifyscrape spotify export spotify:user:1150884627:playlist:3cyD3zInBW4j97ay6xB2WQ | spotifyscrape gmusic import
 
 The playlist will be created in All Access.
 

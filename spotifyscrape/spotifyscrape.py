@@ -26,12 +26,8 @@ def main():
     dispatches the correct methods.
     """
     parser = ArghParser(parents=[COMMON_PARSER])
-    parser.add_commands(
-        [
-            exporttracks, checktoken,
-            allaccessimport, exportplaylist, allaccesslogin
-        ]
-    )
+    parser.add_commands( [ allaccessimport, allaccesslogin ], namespace="gmusic")
+    parser.add_commands( [ exporttracks, checktoken, exportplaylist], namespace="spotify")
 
     args = parser.parse_args()
 

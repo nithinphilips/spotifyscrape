@@ -9,7 +9,7 @@ import spotipy
 import sys
 import io
 
-from argh import arg, named, CommandError
+from argh import arg, named, CommandError, aliases
 
 from .config import read_config
 from .spotipyutil import prompt_for_user_token
@@ -85,13 +85,14 @@ def check_required_arg(argument, name):
         )
 
 
+@named("login")
 @USERNAME_ARG
 @CLIENT_ID_ARG
 @CLIENT_SECRET_ARG
 @REDIRECT_URI_ARG
 def checktoken(username=None, client_id=None, client_secret=None,
                redirect_uri=None):
-    """Retrieve or refresh Spotify authorization token."""
+    """Login to Spotify or refresh the authorization token."""
 
     check_required_arg(username, "Username")
     check_required_arg(client_id, "Client ID")
@@ -114,7 +115,8 @@ def checktoken(username=None, client_id=None, client_secret=None,
 @CLIENT_SECRET_ARG
 @REDIRECT_URI_ARG
 @arg('uri', help='The Public HTTP URL to a playlist')
-@named('export-playlist')
+@aliases('export-playlist')
+@named('export')
 def exportplaylist(uri, username=None, client_id=None, client_secret=None,
                    redirect_uri=None):
     """

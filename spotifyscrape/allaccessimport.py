@@ -167,7 +167,7 @@ def get_playlist(api, playlistname):
 
     return playlist, currenttracks
 
-@named('all-access-login')
+@named('login')
 def allaccesslogin():
     api = Mobileclient(debug_logging=False, validate=False)
     api.perform_oauth(open_browser=True)
