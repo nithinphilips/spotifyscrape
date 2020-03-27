@@ -9,7 +9,7 @@ import argparse
 import logging
 from argh import ArghParser
 from .spotifyexport import exporttracks, exportplaylist, checktoken
-from .allaccessimport import allaccessimport
+from .allaccessimport import allaccessimport, allaccesslogin
 
 
 # These arguments are used by this global dispatcher and each individual
@@ -29,7 +29,7 @@ def main():
     parser.add_commands(
         [
             exporttracks, checktoken,
-            allaccessimport, exportplaylist
+            allaccessimport, exportplaylist, allaccesslogin
         ]
     )
 

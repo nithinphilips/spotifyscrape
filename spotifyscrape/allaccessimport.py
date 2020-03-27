@@ -15,15 +15,8 @@ from gmusicapi import Mobileclient
 APP_CONFIG_FILE = os.path.expanduser("~/.spotifyscrape")
 
 @arg(
-    '--username', help='The username to use when logging into All Access' +
-    ' account. Typically your Google email address.',
-    default=read_config().get("All Access", "username")
-)
-@arg(
-    '--password',
-    help='The password for the All Access account. If you use two factor ' +
-    'authentication generate an application password.',
-    default=read_config().get("All Access", "password")
+    '--client-id', help='A unique ID for this client',
+    default=read_config().get("All Access", "client-id")
 )
 @arg(
     '--dry-run', help='Do not make any actual changes in All Access.'
@@ -33,14 +26,14 @@ APP_CONFIG_FILE = os.path.expanduser("~/.spotifyscrape")
     'The file name (without extension) will become the playlist name.'
 )
 @named('import')
-def allaccessimport(playlist=None, username=None, password=None, dry_run=False):
+def allaccessimport(playlist=None, client_id=None, dry_run=False):
     """
     Exports a Spotify playlist to stdout or csv.
     """
 
-    if not username or not password:
+    if not client_id:
         raise CommandError(
-            "Username and password must be provided as either command-line " +
+            "client-id must be provided as either command-line " +
             "argument or in the application configuration file."
         )
 
@@ -51,8 +44,8 @@ def allaccessimport(playlist=None, username=None, password=None, dry_run=False):
         playlist_name = os.path.splitext(playlist_name)[0]
     logging.debug("Playlist name will be: {}".format(playlist_name))
 
-    api = Mobileclient(False, False)
-    logged_in = api.login(username, password, Mobileclient.FROM_MAC_ADDRESS)
+    api = Mobileclient(debug_logging=False, validate=False)
+    logged_in = api.oauth_login(client_id)
     if not logged_in:
         raise CommandError('Error. Unable to login to Google Music All Access.')
 
@@ -123,7 +116,7 @@ def allaccessimport(playlist=None, username=None, password=None, dry_run=False):
 
     yield "Failed tracks:"
     for line in failed_tracks:
-        print "  ", line
+        yield "  {}".format(line)
 
 def search_track(api, search_term, currenttracks):
     """
@@ -173,3 +166,8 @@ def get_playlist(api, playlistname):
         playlist = None
 
     return playlist, currenttracks
+
+@named('all-access-login')
+def allaccesslogin():
+    api = Mobileclient(debug_logging=False, validate=False)
+    api.perform_oauth(open_browser=True)

@@ -3,7 +3,7 @@
 
 """Methods to read the app configuration"""
 
-import ConfigParser, os
+import configparser, os
 
 APP_CONFIG_FILE = os.path.expanduser("~/.spotifyscrape")
 
@@ -16,7 +16,7 @@ def read_config():
     """
     global CONFIG
     if not CONFIG:
-        CONFIG = ConfigParser.SafeConfigParser()
+        CONFIG = configparser.ConfigParser()
         CONFIG.readfp(
             open(os.path.join(
                 os.path.dirname(__file__),

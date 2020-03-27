@@ -118,11 +118,12 @@ def checktoken(username=None, client_id=None, client_secret=None,
 def exportplaylist(uri, username=None, client_id=None, client_secret=None,
                    redirect_uri=None):
     """
-    Given a Spotify playlist's public HTTP URL, prints the track Title, Artist
-    and Album.
+    Given a Spotify playlist's URI, prints the track Title, Artist and Album.
 
-    The URL must be in the format:
+    The URL must be in one of these formats:
      http://open.spotify.com/user/<user-id>/playlist/<playlist-id>
+     http://open.spotify.com/playlist/<playlist-id>
+     spotify:user:<user-id>:playlist:<playlist-id>
 
     You need to be authorized before you can use this command. See the README
     for details.
@@ -134,22 +135,27 @@ def exportplaylist(uri, username=None, client_id=None, client_secret=None,
     check_required_arg(redirect_uri, "Redirect URL")
 
     pattern = "http://open.spotify.com/user/([^/]+)/playlist/(.+)"
+    pattern2 = "https://open.spotify.com/playlist/(.+)"
     alt_pattern = "spotify:user:([^:]+):playlist:(.+)"
 
     match = re.match(pattern, uri)
     if not match:
         match = re.match(alt_pattern, uri)
 
+    match2 = re.match(pattern2, uri)
+
     if match:
         playlist_username = match.group(1)
         playlistid = match.group(2)
+        open_spotify_uri = "http://open.spotify.com/user/{}/playlist/{}".format(playlist_username, playlistid)
+    elif match2:
+        playlist_username = None
+        playlistid = match2.group(1)
+        open_spotify_uri = "http://open.spotify.com/playlist/{}".format(playlistid)
     else:
         raise CommandError(
             "Cannot read the playlist URI. See the help for expected format."
         )
-
-    # A normalized URL to put in GPM playlist description
-    open_spotify_uri = "http://open.spotify.com/user/{}/playlist/{}".format(playlist_username, playlistid)
 
     sys.stderr.write(
         "Searching for {}'s playlist {}\n".format(playlist_username, playlistid)
@@ -164,9 +170,15 @@ def exportplaylist(uri, username=None, client_id=None, client_secret=None,
     )
 
     spotify = spotipy.Spotify(auth=token)
-    results = spotify.user_playlist(
-        playlist_username, playlistid, fields="name,tracks,next"
-    )
+    if playlist_username:
+        results = spotify.user_playlist(
+            playlist_username, playlistid, fields="name,tracks,next"
+        )
+    else:
+        results = spotify.playlist(
+            playlistid, fields="name,tracks,next"
+        )
+
     sys.stdout.write("# Playlist: {}\n".format(results['name']))
     sys.stdout.write("# Description: from {}\n".format(open_spotify_uri))
 
@@ -190,8 +202,8 @@ def csv_write_tracks(writer, tracks):
 
 def csv_write_track(writer, track):
     """Writes a single track in CSV format"""
-    title = track['name'].encode('utf8')
-    album = track['album']['name'].encode('utf8')
-    artist = track['artists'][0]['name'].encode('utf8')
+    title = track['name']
+    album = track['album']['name']
+    artist = track['artists'][0]['name']
 
     writer.writerow([title, artist, album])
