@@ -3,5 +3,6 @@ python:
   - "3.6.9"
 # command to install dependencies
 install:
-  - pip install .
   - pip install -r requirements.txt
+  - pip install .
+script: python3 spotifyscrape-runner.py --help
