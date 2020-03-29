@@ -8,8 +8,8 @@ __version__ = "0.2.0"
 import argparse
 import logging
 from argh import ArghParser
-from .spotifyexport import exporttracks, exportplaylist, checktoken
-from .allaccess import allaccessimport, allaccesslogin
+from .spotify import exporttracks, exportplaylist, checktoken
+from .allaccess import allaccessimport, allaccesslogin, allaccessexport
 
 # These arguments are used by this global dispatcher and each individual
 # stand-alone commands.
@@ -26,7 +26,7 @@ def main():
     dispatches the correct methods.
     """
     parser = ArghParser(parents=[COMMON_PARSER])
-    parser.add_commands([allaccessimport, allaccesslogin], namespace="gmusic")
+    parser.add_commands([allaccessimport, allaccessexport, allaccesslogin], namespace="gmusic")
     parser.add_commands([exporttracks, checktoken, exportplaylist], namespace="spotify")
 
     args = parser.parse_args()

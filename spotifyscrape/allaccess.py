@@ -7,12 +7,85 @@ import csv
 import os.path
 import logging
 import sys
+import re
+from urllib.parse import unquote
 
 from .config import read_config
 from argh import arg, named, CommandError
 from gmusicapi import Mobileclient
 
 APP_CONFIG_FILE = os.path.expanduser("~/.spotifyscrape")
+
+
+@arg(
+    '--client-id', help='A unique ID for this client',
+    default=read_config().get("All Access", "client-id")
+)
+@arg("--shared",
+     help="If set, the playlist name is treated as a shared playlist. "
+          "If you use the Share URL, this is automatically set.")
+@named('export')
+def allaccessexport(playlist_name, client_id=None, shared=False):
+    if not client_id:
+        raise CommandError(
+            "client-id must be provided as either command-line " +
+            "argument or in the application configuration file."
+        )
+
+    api = Mobileclient(debug_logging=False, validate=False)
+    logged_in = api.oauth_login(client_id)
+    if not logged_in:
+        raise CommandError('Error. Unable to login to Google Music All Access.')
+
+    if playlist_name.startswith("http"):
+        shared = True
+
+    if playlist_name == "Thumbs Up":
+        topsongs = api.get_top_songs()
+        tp2 = list()
+        for song in topsongs:
+            tp2.append({'track': song})
+
+        playlist = {
+            'name': "Thumbs Up",
+            'shareToken': '',
+            'tracks': tp2
+        }
+    elif shared:
+        pattern = r"https?://play.google.com/music/playlist/(.+)"
+        match = re.match(pattern, playlist_name)
+        if match:
+            share_id = match.group(1)
+            playlist_name = unquote(share_id)
+        else:
+            playlist_name = unquote(playlist_name)
+
+        songs = api.get_shared_playlist_contents(playlist_name)
+
+        playlist = {
+            'name': "Shared",
+            'shareToken': playlist_name,
+            'tracks': songs
+        }
+    else:
+        playlist = [x for x in api.get_all_user_playlist_contents() if x['name'] == playlist_name]
+        if len(playlist) == 1:
+            playlist = playlist[0]
+        else:
+            return "Playlist not found"
+
+    tracks = playlist['tracks']
+    playlist = playlist
+
+    yield f"# Playlist: {playlist['name']}"
+    yield f"# Description: from https://play.google.com/music/playlist/{playlist['shareToken']}"
+    yield 'Track,Artist,Album'
+    for track in tracks:
+        if 'track' in track:
+            track = track['track']
+            yield f"{track['title']},{track['artist']},{track['album']}"
+        else:
+            sys.stderr.write(f"Unable to get track details: {track}\n")
 
 
 @arg(
