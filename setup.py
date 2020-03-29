@@ -16,7 +16,7 @@ version = re.search(
 
 
 with open("README.rst", "rb") as f:
-    long_descr = f.read()
+    long_descr = f.read().decode("utf-8")
 
 
 setup(
