@@ -69,10 +69,7 @@ def exporttracks(tracklist):
             failed = failed + 1
 
     sys.stderr.write(
-        "{0} tracks processed. {1} found. {2} failed.\n".format(
-            len(lines),
-            len(tracks) - failed, failed
-        )
+        f"{len(lines)} tracks processed. {len(tracks) - failed} found. {failed} failed.\n"
     )
 
 
@@ -80,8 +77,8 @@ def check_required_arg(argument, name):
     """Check if a required argument is present. If not raise an exception"""
     if not argument:
         raise CommandError(
-            "{} must be provided as either command-line argument or in the"
-            "application configuration file.".format(name)
+            f"{name} must be provided as either command-line argument or in the"
+            "application configuration file."
         )
 
 
@@ -149,18 +146,18 @@ def exportplaylist(uri, username=None, client_id=None, client_secret=None,
     if match:
         playlist_username = match.group(1)
         playlistid = match.group(2)
-        open_spotify_uri = "http://open.spotify.com/user/{}/playlist/{}".format(playlist_username, playlistid)
+        open_spotify_uri = f"http://open.spotify.com/user/{playlist_username}/playlist/{playlistid}"
     elif match2:
         playlist_username = None
         playlistid = match2.group(1)
-        open_spotify_uri = "http://open.spotify.com/playlist/{}".format(playlistid)
+        open_spotify_uri = f"http://open.spotify.com/playlist/{playlistid}"
     else:
         raise CommandError(
             "Cannot read the playlist URI. See the help for expected format."
         )
 
     sys.stderr.write(
-        "Searching for {}'s playlist {}\n".format(playlist_username, playlistid)
+        f"Searching for {playlist_username}'s playlist {playlistid}\n"
     )
 
     writer = csv.writer(sys.stdout, quoting=csv.QUOTE_ALL)
@@ -181,8 +178,8 @@ def exportplaylist(uri, username=None, client_id=None, client_secret=None,
             playlistid, fields="name,tracks,next"
         )
 
-    sys.stdout.write("# Playlist: {}\n".format(results['name']))
-    sys.stdout.write("# Description: from {}\n".format(open_spotify_uri))
+    sys.stdout.write(f"# Playlist: {results['name']}\n")
+    sys.stdout.write(f"# Description: from {open_spotify_uri}\n")
 
     csv_write_header(writer)
 

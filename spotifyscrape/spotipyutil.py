@@ -13,6 +13,7 @@ import spotipy
 
 TOKEN_CACHE_PATH = os.path.expanduser("~/.spotify-oauth")
 
+
 def prompt_for_user_token(username, scope=None, client_id=None,
                           client_secret=None, redirect_uri=None):
     ''' prompts the user to login if necessary and returns
@@ -28,7 +29,6 @@ def prompt_for_user_token(username, scope=None, client_id=None,
          - redirect_uri - the redirect URI of your app
 
     '''
-
 
     if not os.path.exists(TOKEN_CACHE_PATH):
         os.makedirs(TOKEN_CACHE_PATH)
@@ -82,15 +82,15 @@ def prompt_for_user_token(username, scope=None, client_id=None,
         auth_url = sp_oauth.get_authorize_url()
         try:
             subprocess.call(["open", auth_url])
-            sys.stderr.write("Opening {} in your browser\n".format(auth_url))
+            sys.stderr.write(f"Opening {auth_url} in your browser\n")
         except:
             try:
                 subprocess.call(["cygstart", auth_url])
                 sys.stderr.write(
-                    "Opening {} in your browser\n".format(auth_url)
+                    f"Opening {auth_url} in your browser\n"
                 )
             except:
-                sys.stderr.write("Please navigate here: {}\n".format(auth_url))
+                sys.stderr.write(f'Please navigate here: {auth_url}\n')
 
         sys.stderr.write("\n\n")
         response = raw_input("Enter the URL you were redirected to: ")

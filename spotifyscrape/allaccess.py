@@ -14,6 +14,7 @@ from gmusicapi import Mobileclient
 
 APP_CONFIG_FILE = os.path.expanduser("~/.spotifyscrape")
 
+
 @arg(
     '--client-id', help='A unique ID for this client',
     default=read_config().get("All Access", "client-id")
@@ -23,7 +24,7 @@ APP_CONFIG_FILE = os.path.expanduser("~/.spotifyscrape")
 )
 @arg(
     '--playlist', help='The CSV file that contains the tracks to add. ' +
-    'The file name (without extension) will become the playlist name.'
+                       'The file name (without extension) will become the playlist name.'
 )
 @named('import')
 def allaccessimport(playlist=None, client_id=None, dry_run=False):
@@ -42,7 +43,7 @@ def allaccessimport(playlist=None, client_id=None, dry_run=False):
     if playlist:
         playlist_name = os.path.basename(playlist_name)
         playlist_name = os.path.splitext(playlist_name)[0]
-    logging.debug("Playlist name will be: {}".format(playlist_name))
+    logging.debug(f"Playlist name will be: {playlist_name}")
 
     api = Mobileclient(debug_logging=False, validate=False)
     logged_in = api.oauth_login(client_id)
@@ -85,9 +86,7 @@ def allaccessimport(playlist=None, client_id=None, dry_run=False):
                 if not playlist_ref and not dry_run:
                     sys.stderr.write('Playlist not found. Creating new.\n')
                     playlist_ref = api.create_playlist(playlist_name, description=playlist_description)
-                yield 'Going to update playlist {0} ({1})\n'.format(
-                    playlist_name, playlist_ref
-                )
+                yield f'Going to update playlist {playlist_name} ({playlist_ref})\n'
 
         trackinfo = list(csv.reader([input_line], quoting=csv.QUOTE_ALL))[0]
 
@@ -95,28 +94,26 @@ def allaccessimport(playlist=None, client_id=None, dry_run=False):
             yield 'Skipping header.'
             continue
 
-        search_term = "{0} {1}".format(trackinfo[0], trackinfo[1])
+        search_term = f"{trackinfo[0]} {trackinfo[1]}"
         total = total + 1
         newtrackid, error_reason = search_track(api, search_term, currenttracks)
         if newtrackid:
             if not dry_run:
-                #print("Add to {} song {}".format(playlist_ref, newtrackid))
+                # print(f"Add to {playlist_ref} song {newtrackid}")
                 api.add_songs_to_playlist(playlist_ref, newtrackid)
             songs_added = songs_added + 1
         else:
             failed_tracks.append(trackinfo)
         sys.stderr.write(
-            "Searching {}...{}\n".format(search_term, error_reason)
+            f"Searching {search_term}...{error_reason}\n"
         )
 
-
-    yield "{0} songs added out of {1}. {2} Failed.".format(
-        songs_added, total, total-songs_added
-    )
+    yield f"{songs_added} songs added out of {total}. {total - songs_added} Failed."
 
     yield "Failed tracks:"
     for line in failed_tracks:
-        yield "  {}".format(line)
+        yield f"  {line}"
+
 
 def search_track(api, search_term, currenttracks):
     """
@@ -148,7 +145,7 @@ def get_playlist(api, playlistname):
     """
     playlist = [
         x for x in api.get_all_user_playlist_contents() if x['name'] ==
-        playlistname
+                                                           playlistname
     ]
     currenttracks = list()
 
@@ -158,14 +155,13 @@ def get_playlist(api, playlistname):
 
         playlist = playlist[0]['id']
         sys.stderr.write(
-            'Playlist named {} exists. It will be updated.\n'.format(
-                playlistname
-            )
+            f'Playlist named {playlistname} exists. It will be updated.\n'
         )
     else:
         playlist = None
 
     return playlist, currenttracks
+
 
 @named('login')
 def allaccesslogin():
